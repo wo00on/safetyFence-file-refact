@@ -34,3 +34,4 @@ const LogCard: React.FC<Props> = React.memo(({ log }) => (
 ));
 
 export default LogCard;
+//
