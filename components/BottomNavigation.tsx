@@ -2,7 +2,7 @@ import Global from '@/constants/Global';
 import { emergencyService } from '@/services/emergencyService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import { Calendar, Image as ImageIcon, MapPin, Siren, User, Users } from 'lucide-react-native';
+import { Calendar, MapPin, Pill, User, Users } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,7 +11,7 @@ interface BottomNavigationProps {
   currentScreen?: string;
 }
 
-type BottomTabScreenName = 'MapPage' | 'CalendarPage' | 'MyPage' | 'LinkPage' | 'GalleryPage';
+type BottomTabScreenName = 'MapPage' | 'CalendarPage' | 'MyPage' | 'LinkPage' | 'MedicinePage';
 
 const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentScreen }) => {
   const navigation = useNavigation();
@@ -87,69 +87,9 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentScreen }) =>
   };
 
   if (Global.USER_ROLE === 'user') {
-    return (
-      <View className="absolute left-4 right-4 bg-white/95 border border-green-500/80 p-1 pb-3 rounded-2xl shadow-lg" style={{ bottom: Math.max(insets.bottom, 16) }}>
-        <View className="flex-row justify-evenly w-full">
-          {/* --- 지도 --- */}
-          <TouchableOpacity
-            onPress={() => navigateToScreen('MapPage')}
-            className="items-center py-2 px-4"
-          >
-            <MapPin size={26} color={getIconColor('MapPage')} />
-            <Text style={{ fontFamily: 'System' }} className={`text-sm mt-1 ${getTextColor('MapPage')} ${getTextWeight('MapPage')}`}>
-              지도
-            </Text>
-          </TouchableOpacity>
-
-          {/* --- 캘린더 --- */}
-          <TouchableOpacity
-            onPress={() => navigateToScreen('CalendarPage')}
-            className="items-center py-2 px-4"
-          >
-            <Calendar size={26} color={getIconColor('CalendarPage')} />
-            <Text style={{ fontFamily: 'System' }} className={`text-sm mt-1 ${getTextColor('CalendarPage')} ${getTextWeight('CalendarPage')}`}>
-              캘린더
-            </Text>
-          </TouchableOpacity>
-
-          {/* --- 긴급 알림 (중앙) --- */}
-          <View className="items-center -mt-5">
-            <TouchableOpacity
-              onPress={handleEmergency}
-              className="items-center justify-center bg-red-500 w-16 h-16 rounded-full shadow-lg border-4 border-white"
-            >
-              <Siren size={32} color="white" />
-            </TouchableOpacity>
-            <Text style={{ fontFamily: 'System' }} className="text-sm mt-1 text-red-500 font-bold">
-              긴급
-            </Text>
-          </View>
-
-          {/* --- 갤러리 --- */}
-          <TouchableOpacity
-            onPress={() => navigateToScreen('GalleryPage')}
-            className="items-center py-2 px-4"
-          >
-            <ImageIcon size={26} color={getIconColor('GalleryPage')} />
-            <Text style={{ fontFamily: 'System' }} className={`text-sm mt-1 ${getTextColor('GalleryPage')} ${getTextWeight('GalleryPage')}`}>
-              갤러리
-            </Text>
-          </TouchableOpacity>
-
-          {/* --- 설정 (마이페이지) --- */}
-          <TouchableOpacity
-            onPress={() => navigateToScreen('MyPage')} // 이동할 스크린 이름은 'MyPage' 유지
-            className="items-center py-2 px-4"
-          >
-            <User size={26} color={getIconColor('MyPage')} />
-            <Text style={{ fontFamily: 'System' }} className={`text-sm mt-1 ${getTextColor('MyPage')} ${getTextWeight('MyPage')}`}>
-              설정 {/* <-- "마이페이지"에서 "설정"으로 변경 */}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
+    return null;
   }
+
 
   if (Global.USER_ROLE === 'supporter') {
     // 보호자용 네비게이션 (4개 메뉴)
@@ -189,14 +129,14 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentScreen }) =>
             </Text>
           </TouchableOpacity>
 
-          {/* --- 갤러리 --- */}
+          {/* --- 약 관리 --- */}
           <TouchableOpacity
-            onPress={() => navigateToScreen('GalleryPage')}
+            onPress={() => navigateToScreen('MedicinePage')}
             className="items-center py-2 px-4"
           >
-            <ImageIcon size={26} color={getIconColor('GalleryPage')} />
-            <Text style={{ fontFamily: 'System' }} className={`text-sm mt-1 ${getTextColor('GalleryPage')} ${getTextWeight('GalleryPage')}`}>
-              갤러리
+            <Pill size={26} color={getIconColor('MedicinePage')} />
+            <Text style={{ fontFamily: 'System' }} className={`text-sm mt-1 ${getTextColor('MedicinePage')} ${getTextWeight('MedicinePage')}`}>
+              약 관리
             </Text>
           </TouchableOpacity>
 

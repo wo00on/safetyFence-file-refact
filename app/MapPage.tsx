@@ -1,5 +1,5 @@
-
 import Global from '@/constants/Global';
+import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Alert, StatusBar, View } from 'react-native';
 import BottomNavigation from '../components/BottomNavigation';
@@ -12,6 +12,7 @@ import MapLoadingView from '../components/map/MapLoadingView';
 import { useMapLogic } from '../hooks/useMapLogic';
 
 const MainPage: React.FC = () => {
+  const router = useRouter();
   const {
     userRole,
     isLoading,
@@ -26,8 +27,8 @@ const MainPage: React.FC = () => {
     getCurrentDisplayLocation,
     getLocationFreshnessMessage,
     hasMovedToInitialLocation,
-    isTracking, // used for header text
-    isWebSocketConnected, // used for header text
+    isTracking,
+    isWebSocketConnected,
   } = useMapLogic();
 
   const mapRef = useRef<KakaoMapHandle>(null);
@@ -107,7 +108,11 @@ const MainPage: React.FC = () => {
         onGeofenceDelete={handleGeofenceDelete}
       />
 
-      <MapHeader headerText={headerText} headerSubText={headerSubText} />
+      <MapHeader
+        headerText={headerText}
+        headerSubText={headerSubText}
+        onBack={userRole === 'user' ? () => router.back() : undefined}
+      />
 
       <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
         <MapFloatingButtons

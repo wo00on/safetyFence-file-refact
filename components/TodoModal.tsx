@@ -1,9 +1,7 @@
-import * as ImagePicker from 'expo-image-picker';
-import { ChevronDown, ChevronUp, Clock, Paperclip, X } from 'lucide-react-native';
+import { ChevronDown, ChevronUp, Clock, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   Alert,
-  Image,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -12,13 +10,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { galleryService } from '../services/galleryService';
 
 interface TodoData {
   title: string;
   time: Date;
   description?: string;
-  image?: string;
 }
 
 interface TodoModalProps {
@@ -37,35 +33,15 @@ const TodoModal: React.FC<TodoModalProps> = ({
   const [formData, setFormData] = useState<Omit<TodoData, 'time'>>({
     title: '',
     description: '',
-    image: undefined,
   });
   const [time, setTime] = useState({ hours: '09', minutes: '00' });
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   const handleClose = () => {
-    setFormData({ title: '', description: '', image: undefined });
+    setFormData({ title: '', description: '' });
     setTime({ hours: '09', minutes: '00' });
     setShowTimePicker(false);
     onClose();
-  };
-
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('권한 필요', '사진을 선택하려면 갤러리 접근 권한이 필요합니다.');
-      return;
-    }
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setFormData(prev => ({ ...prev, image: result.assets[0].uri }));
-    }
   };
 
   const handleSave = async () => {
@@ -77,21 +53,6 @@ const TodoModal: React.FC<TodoModalProps> = ({
     const dateToSave = new Date();
     dateToSave.setHours(parseInt(time.hours, 10));
     dateToSave.setMinutes(parseInt(time.minutes, 10));
-
-    // 사진이 있으면 갤러리 서비스에 저장
-    if (formData.image) {
-      try {
-        await galleryService.addPhoto({
-          uri: formData.image,
-          date: selectedDate,
-          title: formData.title,
-          description: formData.description,
-        });
-        console.log('사진 갤러리에 저장 완료');
-      } catch (error) {
-        console.error('사진 저장 실패:', error);
-      }
-    }
 
     onSave({
       ...formData,
@@ -225,30 +186,6 @@ const TodoModal: React.FC<TodoModalProps> = ({
                 multiline
                 textAlignVertical="top"
               />
-            </View>
-
-            {/* 사진 첨부 (선택사항) */}
-            <View className="mb-6">
-              <Text className="text-sm font-medium text-gray-700 mb-2">사진 첨부 (선택사항)</Text>
-              {formData.image ? (
-                <View className="relative">
-                  <Image source={{ uri: formData.image }} className="w-full h-48 rounded-lg" />
-                  <TouchableOpacity
-                    onPress={() => setFormData(prev => ({ ...prev, image: undefined }))}
-                    className="absolute top-2 right-2 bg-black/50 rounded-full p-1.5"
-                  >
-                    <X size={18} color="white" />
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  className="flex-row items-center justify-center border-2 border-dashed border-gray-300 rounded-lg py-10"
-                  onPress={pickImage}
-                >
-                  <Paperclip size={20} color="#6b7280" />
-                  <Text className="ml-2 text-base text-gray-600">사진 추가하기</Text>
-                </TouchableOpacity>
-              )}
             </View>
           </ScrollView>
 

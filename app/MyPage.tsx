@@ -1,4 +1,5 @@
 
+import Global from '@/constants/Global';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import {
@@ -72,7 +73,10 @@ const MyPage: React.FC = () => {
     <SafeAreaView className="flex-1 bg-white pt-safe">
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
 
-        <MyPageHeader name={userData.name} />
+        <MyPageHeader
+          name={userData.name}
+          onBack={Global.USER_ROLE === 'user' ? () => navigation.goBack() : undefined}
+        />
 
         <View className="px-5">
           <ProfileCard data={userData} />

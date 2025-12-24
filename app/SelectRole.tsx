@@ -35,7 +35,7 @@ export default function SelectRolePage() {
           await startTracking();
           await disconnectWebSocket();
           connectWebSocket();
-          router.replace(`/MapPage`);
+          router.replace(`/UserMainPage`);
         } else if (Global.USER_ROLE === 'supporter') {
           await stopTracking();
           await disconnectWebSocket();

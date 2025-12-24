@@ -63,6 +63,8 @@ export default function RootLayout() {
           <Stack.Screen name="LogPage" options={{ headerShown: false }} />
           <Stack.Screen name="GalleryPage" options={{ headerShown: false }} />
           <Stack.Screen name="Signup" options={{ headerShown: false }} />
+          <Stack.Screen name="UserMainPage" options={{ headerShown: false }} />
+          <Stack.Screen name="MedicinePage" options={{ headerShown: false }} />
         </Stack>
       </LocationProvider>
     </SafeAreaProvider>

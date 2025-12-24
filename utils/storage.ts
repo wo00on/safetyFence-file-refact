@@ -15,6 +15,8 @@ const STORAGE_KEYS = {
   FCM_TOKEN: '@safetyFence:fcmToken',
   GEOFENCE_ENTRY_STATE: '@safetyFence:geofenceEntryState',
   GEOFENCE_CACHE: '@safetyFence:geofenceCache',
+  MEDICINE_LIST: '@safetyFence:medicineList',
+  MEDICINE_LOGS: '@safetyFence:medicineLogs',
 } as const;
 
 interface GeofenceCache {
@@ -255,4 +257,65 @@ export const storage = {
       throw error;
     }
   },
+
+  // ==================== 약 관리 관련 ====================
+
+  // 약 목록 가져오기
+  async getMedicineList(): Promise<string[]> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.MEDICINE_LIST);
+      return data ? JSON.parse(data) : [];
+    } catch (error) {
+      console.error('약 목록 가져오기 실패:', error);
+      return [];
+    }
+  },
+
+  // 약 목록 저장
+  async setMedicineList(list: string[]): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.MEDICINE_LIST, JSON.stringify(list));
+    } catch (error) {
+      console.error('약 목록 저장 실패:', error);
+      throw error;
+    }
+  },
+
+  // 약 복용 기록 가져오기
+  async getMedicineLogs(): Promise<any[]> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.MEDICINE_LOGS);
+      const logs = data ? JSON.parse(data) : [];
+      // Date 문자열을 객체로 복원
+      return logs.map((log: any) => ({
+        ...log,
+        time: new Date(log.time)
+      }));
+    } catch (error) {
+      console.error('약 복용 기록 가져오기 실패:', error);
+      return [];
+    }
+  },
+
+  // 약 복용 기록 추가
+  async addMedicineLog(log: any): Promise<void> {
+    try {
+      const logs = await this.getMedicineLogs();
+      logs.push(log);
+      await AsyncStorage.setItem(STORAGE_KEYS.MEDICINE_LOGS, JSON.stringify(logs));
+    } catch (error) {
+      console.error('약 복용 기록 저장 실패:', error);
+      throw error;
+    }
+  },
+
+  // 약 복용 기록 초기화 (디버깅용)
+  async clearMedicineLogs(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEYS.MEDICINE_LOGS);
+    } catch (error) {
+      console.error('약 복용 기록 초기화 실패:', error);
+      throw error;
+    }
+  }
 };

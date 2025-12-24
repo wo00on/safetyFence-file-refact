@@ -4,12 +4,14 @@ import { Alert } from 'react-native';
 import Global from '../constants/Global';
 import { calendarService } from '../services/calendarService';
 import { GalleryPhoto, galleryService } from '../services/galleryService';
-import { CalendarItem, Log, Schedule, Todo } from '../types/calendar';
+import { CalendarItem, Log, MedicineLog, Schedule, Todo } from '../types/calendar';
+import { storage } from '../utils/storage';
 
 export const useCalendarData = (todayDateStr: string) => {
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [todos, setTodos] = useState<Todo[]>([]);
     const [logs, setLogs] = useState<Log[]>([]);
+    const [medicineLogs, setMedicineLogs] = useState<MedicineLog[]>([]);
     const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -92,6 +94,13 @@ export const useCalendarData = (todayDateStr: string) => {
                 setPhotos([]);
             }
 
+            // 3. 약 복용 기록 로드 (이용자/보호자 모두 볼 수 있음 - 여기선 로컬 스토리지인데 보호자는 어떻게 보지? 
+            // 일단 로컬 스토리지 기반이니 본인 기기 데이터만 보임. 
+            // * 보호자 연동은 추후 API 필요. 현재 요구사항은 '이용자가 약을 먹었음을 스스로 기록' *
+            // 보호자 앱 연동은 API가 필요하지만 지금은 로컬만 구현.
+            const mediLogs = await storage.getMedicineLogs();
+            setMedicineLogs(mediLogs);
+
         } catch (error) {
             console.error('캘린더 데이터 로드 실패:', error);
             Alert.alert('오류', '캘린더 데이터를 불러오는 데 실패했습니다.');
@@ -154,7 +163,7 @@ export const useCalendarData = (todayDateStr: string) => {
         const map = new Map<string, CalendarItem[]>();
 
         // 모든 아이템 병합
-        const allItems: any[] = [...logs, ...schedules, ...todos, ...photos];
+        const allItems: any[] = [...logs, ...schedules, ...todos, ...photos, ...medicineLogs];
 
         allItems.forEach(item => {
             const date = item.date;
@@ -163,6 +172,7 @@ export const useCalendarData = (todayDateStr: string) => {
             let typedItem: CalendarItem;
             if ('location' in item) typedItem = { ...item, itemType: 'log' };
             else if ('startTime' in item) typedItem = { ...item, itemType: 'schedule' };
+            else if ('time' in item && 'medicineName' in item) typedItem = { ...item, itemType: 'medicine' };
             else if ('time' in item) typedItem = { ...item, itemType: 'todo' };
             else typedItem = { ...item, itemType: 'photo' };
 
@@ -186,6 +196,7 @@ export const useCalendarData = (todayDateStr: string) => {
             const getTime = (item: CalendarItem) => {
                 if (item.itemType === 'log') return item.arriveTime;
                 if (item.itemType === 'schedule') return item.startTime;
+                if (item.itemType === 'medicine') return item.time.getHours().toString().padStart(2, '0') + ':' + item.time.getMinutes().toString().padStart(2, '0');
                 if (item.itemType === 'todo') return item.time.getHours().toString().padStart(2, '0') + ':' + item.time.getMinutes().toString().padStart(2, '0');
                 return '23:59';
             };
@@ -199,6 +210,7 @@ export const useCalendarData = (todayDateStr: string) => {
         schedules,
         todos,
         logs,
+        medicineLogs,
         photos,
         handleTodoSave,
         handleTodoDelete,

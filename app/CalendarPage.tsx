@@ -1,8 +1,8 @@
-
 import Global from '@/constants/Global';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { Calendar, Plus } from 'lucide-react-native';
-import React, { useCallback, useMemo, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -16,6 +16,7 @@ import LogCard from '../components/calendar/LogCard';
 import PhotoCard from '../components/calendar/PhotoCard';
 import ScheduleCard from '../components/calendar/ScheduleCard';
 import TodoCard from '../components/calendar/TodoCard';
+import MedicineCard from '../components/senior/MedicineCard';
 import TodoModal from '../components/TodoModal';
 import { useCalendarData } from '../hooks/useCalendarData';
 import { CalendarItem } from '../types/calendar';
@@ -59,9 +60,12 @@ const getDaysInMonth = (date: Date) => {
 
 // --- 메인 캘린더 페이지 컴포넌트 ---
 const CalendarPage: React.FC = () => {
+  const router = useRouter();
+  const { initialTab } = useLocalSearchParams();
   const [selectedDate, setSelectedDate] = useState<string>(todayDateStr);
   const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [isTodoModalVisible, setIsTodoModalVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState<'schedule' | 'medicine' | 'log'>((initialTab as any) || 'schedule');
 
   const {
     loadCalendarData,
@@ -77,7 +81,22 @@ const CalendarPage: React.FC = () => {
     }, [loadCalendarData])
   );
 
-  const sortedSelectedDateItems = useMemo(() => getSortedItemsForDate(selectedDate), [getSortedItemsForDate, selectedDate]);
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab as any);
+    }
+  }, [initialTab]);
+
+  const sortedSelectedDateItems = useMemo(() => {
+    const items = getSortedItemsForDate(selectedDate);
+    return items.filter(item => {
+      if (activeTab === 'schedule') return item.itemType === 'schedule' || item.itemType === 'todo';
+      if (activeTab === 'medicine') return item.itemType === 'medicine';
+      if (activeTab === 'log') return item.itemType === 'log' || item.itemType === 'photo';
+      return true;
+    });
+  }, [getSortedItemsForDate, selectedDate, activeTab]);
+
   const daysInMonth = useMemo(() => getDaysInMonth(currentMonth), [currentMonth]);
 
   const renderItem = ({ item }: { item: CalendarItem }) => {
@@ -87,6 +106,8 @@ const CalendarPage: React.FC = () => {
       return <ScheduleCard key={`schedule-${item.id}`} schedule={item} />;
     } else if (item.itemType === 'photo') {
       return <PhotoCard key={`photo-${item.id}`} photo={item} />;
+    } else if (item.itemType === 'medicine') {
+      return <MedicineCard key={`medicine-${item.id}`} log={item} />;
     } else {
       return <TodoCard key={`todo-${item.id}`} todo={item} onDelete={handleTodoDelete} />;
     }
@@ -106,11 +127,16 @@ const CalendarPage: React.FC = () => {
       >
 
         {/* 헤더 */}
-        <View className="px-5 pt-5 pb-4">
+        <View className="px-5 pt-5 pb-2 flex-row items-center">
+          {Global.USER_ROLE === 'user' && (
+            <TouchableOpacity onPress={() => router.back()} className="mr-3">
+              <Ionicons name="arrow-back" size={28} color="#1f2937" />
+            </TouchableOpacity>
+          )}
           <Text className="text-3xl font-bold text-gray-900">
             {Global.USER_ROLE === 'supporter' && Global.TARGET_NUMBER
-              ? `${(Global.TARGET_RELATION || Global.TARGET_NUMBER)}의 캘린더`
-              : '캘린더'}
+              ? `${(Global.TARGET_RELATION || Global.TARGET_NUMBER)}의 일정`
+              : '일정'}
           </Text>
         </View>
 
@@ -157,6 +183,7 @@ const CalendarPage: React.FC = () => {
                     const dateStr = day ? `${currentMonth.getFullYear()}-${(currentMonth.getMonth() + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}` : '';
                     const isSelected = dateStr === selectedDate;
                     const isToday = dateStr === todayDateStr;
+                    // TODO: 현재 날짜에 해당 탭의 아이템이 있는지 확인하는 로직 개선 필요
                     const hasItems = day ? hasItemsOnDate(currentMonth, day) : false;
 
                     return (
@@ -206,27 +233,54 @@ const CalendarPage: React.FC = () => {
           </View>
         </View>
 
+        {/* 탭 버튼 (캘린더 아래로 이동 & 색상 차별화) */}
+        <View className="flex-row px-5 mb-4 space-x-2">
+          <TouchableOpacity
+            onPress={() => setActiveTab('schedule')}
+            className={`flex-1 py-3 items-center rounded-xl ${activeTab === 'schedule' ? 'bg-green-500' : 'bg-white border border-gray-200'}`}
+            style={activeTab === 'schedule' ? { elevation: 2 } : {}}
+          >
+            <Text className={`font-bold ${activeTab === 'schedule' ? 'text-white' : 'text-gray-500'}`}>일정</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setActiveTab('medicine')}
+            className={`flex-1 py-3 items-center rounded-xl ${activeTab === 'medicine' ? 'bg-blue-500' : 'bg-white border border-gray-200'}`}
+            style={activeTab === 'medicine' ? { elevation: 2 } : {}}
+          >
+            <Text className={`font-bold ${activeTab === 'medicine' ? 'text-white' : 'text-gray-500'}`}>약</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setActiveTab('log')}
+            className={`flex-1 py-3 items-center rounded-xl ${activeTab === 'log' ? 'bg-orange-500' : 'bg-white border border-gray-200'}`}
+            style={activeTab === 'log' ? { elevation: 2 } : {}}
+          >
+            <Text className={`font-bold ${activeTab === 'log' ? 'text-white' : 'text-gray-500'}`}>이동/기록</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={{ paddingHorizontal: 16 }}>
           <View className="flex-row items-center justify-between mb-3 px-1">
             <Text className="text-xl font-bold text-gray-900">
               {formatDate(selectedDate)}
             </Text>
-            <TouchableOpacity
-              className="flex-row items-center bg-green-500 px-3.5 py-2 rounded-lg shadow-sm"
-              onPress={() => setIsTodoModalVisible(true)}
-            >
-              <Plus size={18} color="white" />
-              <Text className="text-white text-sm font-semibold ml-1">할 일 추가</Text>
-            </TouchableOpacity>
+            {activeTab === 'schedule' && (
+              <TouchableOpacity
+                className="flex-row items-center bg-green-500 px-3.5 py-2 rounded-lg shadow-sm"
+                onPress={() => setIsTodoModalVisible(true)}
+              >
+                <Ionicons name="add" size={18} color="white" />
+                <Text className="text-white text-sm font-semibold ml-1">할 일 추가</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {sortedSelectedDateItems.length > 0 ? (
             sortedSelectedDateItems.map(item => renderItem({ item }))
           ) : (
             <View className="items-center justify-center pt-16">
-              <Calendar size={48} color="#cbd5e1" />
-              <Text className="text-gray-500 text-lg mt-4">등록된 일정이 없습니다</Text>
-              <Text className="text-gray-400 text-sm mt-1">버튼을 눌러 새 할 일을 추가해 보세요</Text>
+              <Ionicons name="calendar-outline" size={48} color="#cbd5e1" />
+              <Text className="text-gray-500 text-lg mt-4">등록된 {activeTab === 'schedule' ? '일정' : activeTab === 'medicine' ? '복용 기록' : '이동 기록'}이 없습니다</Text>
+              {activeTab === 'schedule' && <Text className="text-gray-400 text-sm mt-1">버튼을 눌러 새 할 일을 추가해 보세요</Text>}
             </View>
           )}
         </View>

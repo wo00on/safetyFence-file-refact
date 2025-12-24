@@ -1,23 +1,34 @@
-
 import Global from '@/constants/Global';
-import { User } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 interface Props {
     name: string;
+    onBack?: () => void;
 }
 
-const MyPageHeader: React.FC<Props> = ({ name }) => {
+const MyPageHeader: React.FC<Props> = ({ name, onBack }) => {
     return (
         <View className="bg-green-500 px-6 pt-8 pb-10 rounded-b-[40px] shadow-sm mb-6">
-            <View className="flex-row items-center justify-center mb-6">
+            <View className="flex-row items-center justify-between mb-6">
+                {/* 뒤로가기 버튼 (onBack이 있을 때만 렌더링) */}
+                {onBack ? (
+                    <TouchableOpacity onPress={onBack} className="p-2 -ml-2">
+                        <Ionicons name="arrow-back" size={28} color="white" />
+                    </TouchableOpacity>
+                ) : (
+                    <View style={{ width: 40 }} /> // 레이아웃 균형을 위한 빈 뷰
+                )}
+
                 <Text className="text-2xl font-bold text-white">마이페이지</Text>
+
+                <View style={{ width: 40 }} /> // 레이아웃 균형을 위한 빈 뷰
             </View>
 
             <View className="flex-row items-center bg-white/10 p-4 rounded-3xl backdrop-blur-sm">
                 <View className="w-16 h-16 rounded-full bg-white items-center justify-center mr-4">
-                    <User size={32} color="#22c55e" />
+                    <Ionicons name="person" size={32} color="#22c55e" />
                 </View>
                 <View>
                     <View className="flex-row items-center mb-1">

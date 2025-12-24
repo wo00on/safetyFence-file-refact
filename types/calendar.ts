@@ -30,8 +30,17 @@ export interface Log {
     type: 'log';
 }
 
+export interface MedicineLog {
+    id: number;
+    medicineName: string;
+    time: Date;
+    date: string;
+    type: 'medicine';
+}
+
 export type CalendarItem =
     | (Schedule & { itemType: 'schedule' })
     | (Todo & { itemType: 'todo' })
     | (Log & { itemType: 'log' })
-    | (GalleryPhoto & { itemType: 'photo' });
+    | (GalleryPhoto & { itemType: 'photo' })
+    | (MedicineLog & { itemType: 'medicine' });
