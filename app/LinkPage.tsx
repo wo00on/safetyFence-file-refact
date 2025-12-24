@@ -582,7 +582,10 @@ const UsersScreen: React.FC = () => {
                 </View>
 
                 <TouchableOpacity
-                  onPress={() => setIsGeofenceModalOpen(true)}
+                  onPress={() => {
+                    setIsBatchModalOpen(false);
+                    setTimeout(() => setIsGeofenceModalOpen(true), 300);
+                  }}
                   className="w-full py-4 bg-gray-100 rounded-2xl items-center border border-gray-200 border-dashed"
                 >
                   <Text className="font-bold text-gray-600">
@@ -614,8 +617,15 @@ const UsersScreen: React.FC = () => {
 
       <GeofenceModal
         visible={isGeofenceModalOpen}
-        onClose={() => setIsGeofenceModalOpen(false)}
-        onSave={(data) => setBatchGeofenceData(data)}
+        onClose={() => {
+          setIsGeofenceModalOpen(false);
+          setTimeout(() => setIsBatchModalOpen(true), 300);
+        }}
+        onSave={(data) => {
+          setBatchGeofenceData(data);
+          // GeofenceModal internal handleSave calls onClose, so the reopening logic in onClose will handle restoring the BatchModal.
+          // We just need to update the data here.
+        }}
       />
 
       <Modal visible={isAddUserDialogOpen} transparent animationType="slide" onRequestClose={() => setIsAddUserDialogOpen(false)}>

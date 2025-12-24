@@ -29,6 +29,7 @@ export const useCalendarData = (todayDateStr: string) => {
             const allSchedules: Schedule[] = [];
             const allTodos: Todo[] = [];
             const allLogs: Log[] = [];
+            const allMedicineLogs: MedicineLog[] = [];
 
             if (calendarData) {
                 calendarData.forEach((dayData) => {
@@ -70,13 +71,27 @@ export const useCalendarData = (todayDateStr: string) => {
                             time.setMinutes(minutes);
                             time.setSeconds(0);
 
-                            allTodos.push({
-                                id: event.userEventId,
-                                title: event.event,
-                                time,
-                                date: dayData.date,
-                                type: 'todo',
-                            });
+                            if (event.event.startsWith('[약]')) {
+                                // 약 복용 기록으로 처리
+                                const medicineName = event.event.replace('[약]', '').trim();
+                                allMedicineLogs.push({
+                                    id: event.userEventId,
+                                    medicineName: medicineName,
+                                    time: time,
+                                    taken: false, // 서버 이벤트는 복용 여부를 알 수 없으므로 기본값
+                                    date: dayData.date,
+                                    type: 'medicine'
+                                } as any); // Type assertion needed because MedicineLog definition might be slightly different
+                            } else {
+                                // 일반 할 일로 처리
+                                allTodos.push({
+                                    id: event.userEventId,
+                                    title: event.event,
+                                    time,
+                                    date: dayData.date,
+                                    type: 'todo',
+                                });
+                            }
                         });
                     }
                 });
@@ -94,12 +109,10 @@ export const useCalendarData = (todayDateStr: string) => {
                 setPhotos([]);
             }
 
-            // 3. 약 복용 기록 로드 (이용자/보호자 모두 볼 수 있음 - 여기선 로컬 스토리지인데 보호자는 어떻게 보지? 
-            // 일단 로컬 스토리지 기반이니 본인 기기 데이터만 보임. 
-            // * 보호자 연동은 추후 API 필요. 현재 요구사항은 '이용자가 약을 먹었음을 스스로 기록' *
-            // 보호자 앱 연동은 API가 필요하지만 지금은 로컬만 구현.
-            const mediLogs = await storage.getMedicineLogs();
-            setMedicineLogs(mediLogs);
+            // 3. 약 복용 기록 로드 (이용자/보호자 모두 볼 수 있음)
+            // 로컬 스토리지 + 서버 이벤트([약] 접두사) 병합
+            const localMediLogs = await storage.getMedicineLogs();
+            setMedicineLogs([...allMedicineLogs, ...localMediLogs]);
 
         } catch (error) {
             console.error('캘린더 데이터 로드 실패:', error);
