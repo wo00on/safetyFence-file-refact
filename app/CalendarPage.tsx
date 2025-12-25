@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import BottomNavigation from '../components/BottomNavigation';
 import LogCard from '../components/calendar/LogCard';
-import PhotoCard from '../components/calendar/PhotoCard';
+
 import ScheduleCard from '../components/calendar/ScheduleCard';
 import TodoCard from '../components/calendar/TodoCard';
 import MedicineCard from '../components/senior/MedicineCard';
@@ -92,7 +92,7 @@ const CalendarPage: React.FC = () => {
     return items.filter(item => {
       if (activeTab === 'schedule') return item.itemType === 'schedule' || item.itemType === 'todo';
       if (activeTab === 'medicine') return item.itemType === 'medicine';
-      if (activeTab === 'log') return item.itemType === 'log' || item.itemType === 'photo';
+      if (activeTab === 'log') return item.itemType === 'log';
       return true;
     });
   }, [getSortedItemsForDate, selectedDate, activeTab]);
@@ -104,8 +104,7 @@ const CalendarPage: React.FC = () => {
       return <LogCard key={`log-${item.id}`} log={item} />;
     } else if (item.itemType === 'schedule') {
       return <ScheduleCard key={`schedule-${item.id}`} schedule={item} />;
-    } else if (item.itemType === 'photo') {
-      return <PhotoCard key={`photo-${item.id}`} photo={item} />;
+
     } else if (item.itemType === 'medicine') {
       return <MedicineCard key={`medicine-${item.id}`} log={item} />;
     } else {

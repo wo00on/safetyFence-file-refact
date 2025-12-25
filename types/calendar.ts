@@ -1,6 +1,4 @@
 
-import { GalleryPhoto } from '../services/galleryService';
-
 export interface Schedule {
     id: number; // geofenceId
     name: string;
@@ -42,5 +40,4 @@ export type CalendarItem =
     | (Schedule & { itemType: 'schedule' })
     | (Todo & { itemType: 'todo' })
     | (Log & { itemType: 'log' })
-    | (GalleryPhoto & { itemType: 'photo' })
     | (MedicineLog & { itemType: 'medicine' });

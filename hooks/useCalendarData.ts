@@ -3,7 +3,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 import Global from '../constants/Global';
 import { calendarService } from '../services/calendarService';
-import { GalleryPhoto, galleryService } from '../services/galleryService';
 import { geofenceService } from '../services/geofenceService';
 import { GeofenceItem } from '../types/api';
 import { CalendarItem, Log, MedicineLog, Schedule, Todo } from '../types/calendar';
@@ -14,7 +13,6 @@ export const useCalendarData = (todayDateStr: string) => {
     const [todos, setTodos] = useState<Todo[]>([]);
     const [logs, setLogs] = useState<Log[]>([]);
     const [medicineLogs, setMedicineLogs] = useState<MedicineLog[]>([]);
-    const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
     const [permanentGeofences, setPermanentGeofences] = useState<GeofenceItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -119,13 +117,7 @@ export const useCalendarData = (todayDateStr: string) => {
             setTodos(allTodos);
             setLogs(allLogs);
 
-            // 2. 로컬 갤러리 데이터 조회
-            if (Global.USER_ROLE === 'user') {
-                const galleryData = await galleryService.getPhotos();
-                setPhotos(galleryData);
-            } else {
-                setPhotos([]);
-            }
+
 
             // 3. 약 복용 기록 로드
             const localMediLogs = await storage.getMedicineLogs();
@@ -193,7 +185,7 @@ export const useCalendarData = (todayDateStr: string) => {
         const map = new Map<string, CalendarItem[]>();
 
         // 모든 아이템 병합
-        const allItems: any[] = [...logs, ...schedules, ...todos, ...photos, ...medicineLogs];
+        const allItems: any[] = [...logs, ...schedules, ...todos, ...medicineLogs];
 
         allItems.forEach(item => {
             const date = item.date;
@@ -204,12 +196,12 @@ export const useCalendarData = (todayDateStr: string) => {
             else if ('startTime' in item) typedItem = { ...item, itemType: 'schedule' };
             else if ('time' in item && 'medicineName' in item) typedItem = { ...item, itemType: 'medicine' };
             else if ('time' in item) typedItem = { ...item, itemType: 'todo' };
-            else typedItem = { ...item, itemType: 'photo' };
+            else typedItem = { ...item, itemType: 'medicine' };
 
             map.set(date, [...items, typedItem]);
         });
         return map;
-    }, [logs, schedules, todos, photos, medicineLogs]);
+    }, [logs, schedules, todos, medicineLogs]);
 
     const hasItemsOnDate = useMemo(() => {
         const datesWithItems = new Set(itemsByDate.keys());
@@ -253,7 +245,7 @@ export const useCalendarData = (todayDateStr: string) => {
         todos,
         logs,
         medicineLogs,
-        photos,
+
         handleTodoSave,
         handleTodoDelete,
         itemsByDate,
